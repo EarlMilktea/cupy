@@ -7,6 +7,8 @@ import sys
 from collections.abc import Callable
 from typing import Any
 
+from cupy_builder import logger
+
 
 def _memoize(f: Callable) -> Callable:
     memo = {}
@@ -29,14 +31,14 @@ def get_nvtx_path() -> str | None:
         prog, 'NVIDIA Corporation', 'Nsight Systems *', 'target-windows-x64',
         'nvtx',
     )
-    print(f'Looking for NVTX: {pattern}')
+    logger.info('Looking for NVTX: %s', pattern)
     candidates = sorted(glob.glob(pattern))
     if len(candidates) != 0:
         # Pick the latest one
         nvtx = candidates[-1]
-        print(f'Using NVTX at: {nvtx}')
+        logger.info('Using NVTX at: %s', nvtx)
         return nvtx
     if os.environ.get('CONDA_BUILD', '0') == '1':
         return os.environ['PREFIX']
-    print('NVTX could not be found')
+    logger.warning('NVTX could not be found')
     return None
