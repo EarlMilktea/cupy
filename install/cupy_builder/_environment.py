@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import functools
 import glob
 import os
 import sys
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 
 def _memoize(f: Callable) -> Callable:
@@ -18,7 +21,7 @@ def _memoize(f: Callable) -> Callable:
 
 
 @_memoize
-def get_nvtx_path() -> Optional[str]:
+def get_nvtx_path() -> str | None:
     assert sys.platform == 'win32'
 
     prog = os.environ.get('ProgramFiles', 'C:\\Program Files')
