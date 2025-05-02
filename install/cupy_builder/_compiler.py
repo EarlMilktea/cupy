@@ -12,6 +12,7 @@ import distutils.ccompiler
 from setuptools import Extension
 
 import cupy_builder.install_build as build
+from cupy_builder import logger
 from cupy_builder._context import Context
 
 
@@ -189,7 +190,7 @@ class DeviceCompilerBase:
         return distutils.ccompiler.gen_preprocess_options(macros, incdirs)
 
     def spawn(self, commands: list[str]) -> None:
-        print('Command:', commands)
+        logger.debug('Command: %s', commands)
         subprocess.check_call(commands)
 
 
@@ -219,7 +220,7 @@ class DeviceCompilerUnix(DeviceCompilerBase):
         postargs += ['--std=c++17',
                      f'-t{num_threads}',
                      '-Xcompiler=-fno-gnu-unique']
-        print('NVCC options:', postargs)
+        logger.debug('NVCC options: %s', postargs)
         self.spawn(compiler_so + base_opts + cc_args + [src, '-o', obj] +
                    postargs)
 
@@ -235,7 +236,7 @@ class DeviceCompilerUnix(DeviceCompilerBase):
         # Note: we only support ROCm 4.3+ since CuPy v11.0.0.
         # Bumping C++ standard from C++14 to C++17 for "if constexpr"
         postargs += ['--std=c++17']
-        print('HIPCC options:', postargs)
+        logger.debug('HIPCC options: %s', postargs)
         self.spawn(compiler_so + base_opts + cc_args + [src, '-o', obj] +
                    postargs)
 
@@ -265,9 +266,9 @@ class DeviceCompilerWin32(DeviceCompilerBase):
                      f'-t{num_threads}']
         cl_exe_path = self._find_host_compiler_path()
         if cl_exe_path is not None:
-            print(f'Using host compiler at {cl_exe_path}')
+            logger.info(f'Using host compiler at {cl_exe_path}')
             postargs += ['--compiler-bindir', cl_exe_path]
-        print('NVCC options:', postargs)
+        logger.debug('NVCC options: %s', postargs)
         self.spawn(compiler_so + cc_args + [src, '-o', obj] + postargs)
 
     def _find_host_compiler_path(self) -> str | None:
@@ -284,7 +285,7 @@ class DeviceCompilerWin32(DeviceCompilerBase):
             # See #8568, #8574, #8583.
             import setuptools.msvc
         except Exception:
-            print('Warning: cl.exe could not be auto-detected; '
+            logger.warning('Warning: cl.exe could not be auto-detected; '
                   'setuptools.msvc could not be imported')
             return None
 
@@ -294,5 +295,5 @@ class DeviceCompilerWin32(DeviceCompilerBase):
             cl_exe = os.path.join(path, 'cl.exe')
             if os.path.exists(cl_exe):
                 return path
-        print(f'Warning: cl.exe could not be found in {vctools}')
+        logger.warning('Warning: cl.exe could not be found in %s', vctools)
         return None
