@@ -1,19 +1,20 @@
 # mypy: ignore-errors
 
+from __future__ import annotations
+
 import copy
-from distutils import ccompiler
-from distutils import sysconfig
 import logging
 import os
 import shutil
 import sys
 
 import setuptools
+from distutils import ccompiler, sysconfig
 
 import cupy_builder.install_build as build
+from cupy_builder import logger
 from cupy_builder._context import Context
-from cupy_builder.install_build import PLATFORM_LINUX
-from cupy_builder.install_build import PLATFORM_WIN32
+from cupy_builder.install_build import PLATFORM_LINUX, PLATFORM_WIN32
 
 
 def ensure_module_file(file):
@@ -484,7 +485,7 @@ def prepare_wheel_libs(ctx: Context):
     """
     data_dir = os.path.abspath(os.path.join('cupy', '.data'))
     if os.path.exists(data_dir):
-        print('Clearing directory: {}'.format(data_dir))
+        logger.info('Clearing directory: %s', data_dir)
         shutil.rmtree(data_dir)
     os.mkdir(data_dir)
 
@@ -512,7 +513,7 @@ def prepare_wheel_libs(ctx: Context):
     # Copy
     for srcpath, dstpath in files_to_copy:
         # Note: symlink is resolved by shutil.copy2.
-        print('Copying file for wheel: {}'.format(srcpath))
+        logger.info('Copying file for wheel: %s', srcpath)
         dirpath = os.path.dirname(dstpath)
         if not os.path.isdir(dirpath):
             os.makedirs(dirpath)
