@@ -8,6 +8,7 @@ import sys
 from typing import TYPE_CHECKING
 
 import cupy_builder
+from cupy_builder import logger
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -85,7 +86,7 @@ class Context:
         self.features = cupy_builder.get_features(self)
 
         # Calculate cache key for this build
-        print('Generating cache key from header files...')
+        logger.info('Generating cache key from header files...')
         include_pattern = os.path.join(
             source_root, 'cupy', '_core', 'include', '**')
         include_files = [
@@ -100,8 +101,12 @@ class Context:
                 hasher.update(f.read())
                 hasher.update(b'\x00')
         cache_key = hasher.hexdigest()
-        print(f'Cache key ({len(include_files)} files '
-              f'matching {include_pattern}): {cache_key}')
+        logger.info(
+            'Cache key (%s files matching %s): %s',
+            len(include_files),
+            include_pattern,
+            cache_key,
+        )
         self.cupy_cache_key = cache_key
 
         # Host compiler path for Windows, see `_command.py`.
