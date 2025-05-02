@@ -13,6 +13,7 @@ import setuptools.command.build_ext
 
 import cupy_builder
 import cupy_builder.install_build as build
+from cupy_builder import logger
 from cupy_builder._compiler import DeviceCompilerUnix, DeviceCompilerWin32
 from cupy_builder._context import Context
 
@@ -55,15 +56,15 @@ def compile_device_code(
 
     objects = []
     for src in sources_cu:
-        print(f'{ext.name}: Device code: {src}')
+        logger.debug('%s: Device code: %s', ext.name, src)
         obj_ext = 'obj' if sys.platform == 'win32' else 'o'
         # TODO(kmaehashi): embed CUDA version in path
         obj = f'build/temp.device_objects/{src}.{obj_ext}'
         if os.path.exists(obj) and (_get_timestamp(src) < _get_timestamp(obj)):
-            print(f'{ext.name}: Reusing cached object file: {obj}')
+            logger.info('%s: Reusing cached object file: %s', ext.name, obj)
         else:
             os.makedirs(os.path.dirname(obj), exist_ok=True)
-            print(f'{ext.name}: Building: {obj}')
+            logger.info('%s: Building: %s', ext.name, obj)
             compiler.compile(obj, src, ext)
         objects.append(obj)
 
@@ -80,16 +81,16 @@ def dumpbin_dependents(dumpbin: str, path: str) -> list[str]:
     try:
         p = subprocess.run(args, stdout=subprocess.PIPE)
     except FileNotFoundError:
-        print(f'*** DUMPBIN not found: {args}')
+        logger.error('*** DUMPBIN not found: %s', args)
         return []
     if p.returncode != 0:
-        print(f'*** DUMPBIN failed ({p.returncode}): {args}')
+        logger.error('*** DUMPBIN failed (%s): %s', p.returncode, args)
         return []
     sections = p.stdout.decode().split('\r\n\r\n')
     for num, section in enumerate(sections):
         if 'Image has the following dependencies:' in section:
             return [line.strip() for line in sections[num+1].splitlines()]
-    print(f'*** DUMPBIN output could not be parsed: {args}')
+    logger.error('*** DUMPBIN output could not be parsed: %s', args)
     return []
 
 
@@ -125,7 +126,7 @@ class custom_build_ext(setuptools.command.build_ext.build_ext):
         use_cuda_python = ctx.use_cuda_python
         compile_time_env['CUPY_USE_CUDA_PYTHON'] = use_cuda_python
         if use_cuda_python:
-            print('Using CUDA Python')
+            logger.debug('Using CUDA Python')
 
         compile_time_env['CUPY_CUFFT_STATIC'] = False
         compile_time_env['CUPY_CYTHON_VERSION'] = Cython.__version__
@@ -140,8 +141,10 @@ class custom_build_ext(setuptools.command.build_ext.build_ext):
                 ctx.features['cuda'].get_version())
             compile_time_env['CUPY_HIP_VERSION'] = 0
 
-        print('Compile-time constants: ' +
-              json.dumps(compile_time_env, indent=4))
+        logger.debug(
+            'Compile-time constants: %s',
+            json.dumps(compile_time_env, indent=4),
+        )
 
         if sys.platform == 'win32':
             # Disable multiprocessing on Windows (spawn)
@@ -171,11 +174,11 @@ class custom_build_ext(setuptools.command.build_ext.build_ext):
             self.compiler.initialize()
             if hasattr(self.compiler, 'cc'):
                 cc = self.compiler.cc
-                print(f'Detected host compiler: {cc}')
+                logger.info('Detected host compiler: %s', cc)
                 ctx.win32_cl_exe_path = cc
 
         # Compile "*.pyx" files into "*.cpp" files.
-        print('Cythonizing...')
+        logger.info('Cythonizing...')
         self._cythonize(num_jobs)
 
         # Change an extension in each source filenames from "*.pyx" to "*.cpp".
@@ -190,11 +193,11 @@ class custom_build_ext(setuptools.command.build_ext.build_ext):
                 if not os.path.isfile(src):
                     raise RuntimeError(f'Fatal error: missing file: {src}')
 
-        print('Building extensions...')
+        logger.info('Building extensions...')
         super().build_extensions()
 
         if sys.platform == 'win32':
-            print('Generating DLL dependency list...')
+            logger.info('Generating DLL dependency list...')
 
             # Find "dumpbin.exe" next to "lib.exe".
             dumpbin = os.path.join(
@@ -225,7 +228,9 @@ class custom_build_ext(setuptools.command.build_ext.build_ext):
             if (os.path.exists(ext_inplace) and
                     max(_get_timestamp(f) for f in (ext.sources + ext.depends))
                     < _get_timestamp(ext_inplace)):
-                print(f'skip building \'{ext.name}\' extension (up-to-date)')
+                logger.info(
+                    "skip building '%s' extension (up-to-date)", ext.name
+                )
                 # Pretend as if it was just built.
                 os.makedirs(os.path.dirname(ext_build_lib), exist_ok=True)
                 shutil.copy2(ext_inplace, ext_build_lib)
