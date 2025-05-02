@@ -7,8 +7,6 @@ import sys
 from collections.abc import Callable
 from typing import Any
 
-from cupy_builder import logger
-
 
 def _memoize(f: Callable) -> Callable:
     memo = {}
@@ -24,6 +22,8 @@ def _memoize(f: Callable) -> Callable:
 
 @_memoize
 def get_nvtx_path() -> str | None:
+    from cupy_builder import logger
+
     assert sys.platform == 'win32'
 
     prog = os.environ.get('ProgramFiles', 'C:\\Program Files')
