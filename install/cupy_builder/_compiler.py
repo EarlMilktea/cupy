@@ -286,7 +286,7 @@ class DeviceCompilerWin32(DeviceCompilerBase):
             import setuptools.msvc
         except Exception:
             logger.warning('Warning: cl.exe could not be auto-detected; '
-                  'setuptools.msvc could not be imported')
+                           'setuptools.msvc could not be imported')
             return None
 
         vctools: list[str] = setuptools.msvc.EnvironmentInfo(
