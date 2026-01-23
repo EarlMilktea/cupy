@@ -146,6 +146,14 @@ _DTypeWithDefaultT_co = TypeVar(
 
 # TODO: Add shape support (currently Any)
 class ndarray(Generic[_ShapeWithDefaultT_co, _DTypeWithDefaultT_co]):
+    def __new__(
+        cls,
+        shape: _ShapeLike,
+        dtype: DTypeLike | None = ...,
+        memptr: MemoryPointer | None = ...,
+        strides: _ShapeLike | None = ...,
+        order: str | None = ...,
+    ) -> Self: ...
     def __init__(
         self,
         shape: _ShapeLike,
@@ -889,13 +897,6 @@ class ndarray(Generic[_ShapeWithDefaultT_co, _DTypeWithDefaultT_co]):
         self,
         dtype: _DTypeT,
     ) -> ndarray[Any, _DTypeT]: ...
-    def __new__(
-        cls,
-        shape: tuple[SupportsIndex, ...],
-        dtype: DTypeLike,  # MEMO: Not completely sure
-        memptr: MemoryPointer = ...,
-        strides: tuple[SupportsIndex, ...] = ...,
-    ) -> Self: ...
 
 @overload
 def array(
