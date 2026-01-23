@@ -10,8 +10,8 @@ from typing import Any
 # enable NEP 50 weak promotion rules
 import numpy
 import pytest
-from typeguard import TypeCheckMemo, TypeCheckerCallable
 import typeguard
+from typeguard import TypeCheckerCallable, TypeCheckMemo
 
 import cupy
 
@@ -122,11 +122,11 @@ def _check_cupy_array(
     assert len(args) <= 1
     if not args:
         return
-    (dtype,) = args
-    if dtype == Any:
+    (typ,) = args
+    if typ is Any:
         return
-    if value.dtype != dtype:
-        msg = f"Expected {dtype}, got {value.dtype}"
+    if not issubclass(value.dtype.type, typ):
+        msg = f"{value.dtype.type} is not a subclass of {typ}"
         raise TypeError(msg)
 
 
