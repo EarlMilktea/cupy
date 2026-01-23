@@ -1,11 +1,25 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import TypeVar
+from unittest.mock import patch
+
 import numpy
 import pytest
+from typeguard import typechecked
 
 import cupy
 
 
+_F = TypeVar("_F", bound=Callable)
+
+
+# TODO: Move to an appropriate common location
+def typetest(symbol: str) -> Callable[[_F], _F]:
+    return patch.object(cupy, symbol, typechecked(getattr(cupy, symbol)))  # pyright: ignore[reportReturnType]
+
+
+@typetest("empty")
 def test_empty() -> None:
     cupy.empty(10)
     cupy.empty((10, 20))
@@ -32,6 +46,7 @@ def test_empty_ng() -> None:
     # cupy.empty((10, 20), numpy.datetime64)
 
 
+@typetest("empty_like")
 def test_empty_like() -> None:
     x = cupy.empty((10, 20))
     cupy.empty_like(x)
@@ -43,6 +58,7 @@ def test_empty_like() -> None:
     cupy.empty_like(prototype=x, dtype=float, order="C", shape=(10, 20))
 
 
+@typetest("eye")
 def test_eye() -> None:
     cupy.eye(10)
     cupy.eye(10, 20)
@@ -58,12 +74,14 @@ def test_eye_ng() -> None:
     cupy.eye(10, 20, 3, float, "A")  # type: ignore[arg-type]
 
 
+@typetest("identity")
 def test_identity() -> None:
     cupy.identity(10)
     cupy.identity(10, float)
     cupy.identity(n=10, dtype=float)
 
 
+@typetest("ones")
 def test_ones() -> None:
     cupy.ones((10, 20))
     cupy.ones((10, 20), float)
@@ -77,6 +95,7 @@ def test_ones_ng() -> None:
     cupy.ones((10, 20), float, "A")  # type: ignore[arg-type]
 
 
+@typetest("ones_like")
 def test_ones_like() -> None:
     x = cupy.ones((10, 20))
     cupy.ones_like(x)
@@ -88,6 +107,7 @@ def test_ones_like() -> None:
     cupy.ones_like(a=x, dtype=float, order="C", shape=(10, 20))
 
 
+@typetest("zeros")
 def test_zeros() -> None:
     cupy.zeros((10, 20))
     cupy.zeros((10, 20), float)
@@ -101,6 +121,7 @@ def test_zeros_ng() -> None:
     cupy.zeros((10, 20), float, "A")  # type: ignore[arg-type]
 
 
+@typetest("zeros_like")
 def test_zeros_like() -> None:
     x = cupy.zeros((10, 20))
     cupy.zeros_like(x)
@@ -112,6 +133,7 @@ def test_zeros_like() -> None:
     cupy.zeros_like(a=x, dtype=float, order="C", shape=(10, 20))
 
 
+@typetest("full")
 def test_full() -> None:
     cupy.full((10, 20), 30)
     cupy.full((10, 20), 30, float)
@@ -127,6 +149,7 @@ def test_full_ng() -> None:
     cupy.full((10, 20), 30, float, "A")  # type: ignore[arg-type]
 
 
+@typetest("full_like")
 def test_full_like() -> None:
     x = cupy.full((10, 20), 30)
     cupy.full_like(x, 30)
