@@ -76,6 +76,8 @@ optional_dependencies = {
         "pytest>=7.2",
         "hypothesis>=6.37.2,<6.55.0",
         "mpmath",
+        "mypy",
+        "typeguard",
     ],
 }
 if not ctx.use_hip:
