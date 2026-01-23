@@ -113,26 +113,29 @@ if int(os.environ.get("CUPY_ENABLE_UMP", 0)) != 0:
     my_allocator.__enter__()
 
 
-def check_cupy_array(
+def _check_cupy_array(
     value: Any, origin_type: Any, args: tuple[Any, ...], memo: TypeCheckMemo
 ) -> None:
     if not isinstance(value, cupy.ndarray):
         msg = "Not a cupy.ndarray"
         raise TypeError(msg)
+    assert len(args) <= 1
+    if not args:
+        return
     (dtype,) = args
+    if dtype == Any:
+        return
     if value.dtype != dtype:
         msg = f"Expected {dtype}, got {value.dtype}"
         raise TypeError(msg)
 
 
-def array_checker_lookup(
+def _array_checker_lookup(
     origin_type: Any, args: tuple[Any, ...], extras: tuple[Any, ...]
 ) -> TypeCheckerCallable | None:
     if inspect.isclass(origin_type) and issubclass(origin_type, cupy.ndarray):
-        assert len(args) == 1
-        return check_cupy_array
-
+        return _check_cupy_array
     return None
 
 
-typeguard.checker_lookup_functions.append(array_checker_lookup)
+typeguard.checker_lookup_functions.append(_array_checker_lookup)
