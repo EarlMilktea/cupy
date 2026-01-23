@@ -1,7 +1,6 @@
 from collections.abc import Callable, Sequence
-from typing import Never
 
-from typing_extensions import Self
+from typing_extensions import Never, Self
 
 from cupy.cuda.device import Device
 from cupy.cuda.stream import Stream

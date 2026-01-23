@@ -7,7 +7,6 @@ from typing import (
     Generic,
     Literal,
     Protocol,
-    Self,
     SupportsIndex,
     TypeAlias,
     overload,
@@ -15,7 +14,7 @@ from typing import (
 
 import numpy
 from _typeshed import StrOrBytesPath, SupportsWrite
-from typing_extensions import TypeVar
+from typing_extensions import Self, TypeVar
 
 from cupy._core.flags import Flags
 from cupy.cuda.device import Device
